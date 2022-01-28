@@ -1,8 +1,8 @@
 # kiva
 csv形式のデータと画像に対してマルチモーダルなデータセットの作成方法と前処理
 
-## 使用
-main.pyとZipMake.pyをダウンロード
+## 使用方法
+前と同様にmain.pyとZipMake.pyをダウンロード//
 main.pyを実行（ZipMake.py）は同じディレクトリ内に保存
 
 ### 以前との変更点
