@@ -6,5 +6,5 @@ main.pyとZipMake.pyをダウンロード
 main.pyを実行（ZipMake.py）は同じディレクトリ内に保存
 
 ### 手順
-・isMakeDataフラグをTrueにするとデータ作成、作成後はFalseのまま
-・ZipMakeのメソッドのmake_train_data,make_test_dataはTrueに設定変更
+- isMakeDataフラグをTrueにするとデータ作成、作成後はFalseのまま
+- ZipMakeのメソッドのmake_train_data,make_test_dataはTrueに設定変更
