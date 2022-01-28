@@ -81,7 +81,8 @@ class ZipMake:
         
         with open(path, 'wb') as f:
             img_tmp_array = []        
-            loan_tmp_array = np.array([loan for loan in df['LOAN_AMOUNT']])        
+            loan_tmp_array = np.array([loan for loan in df['LOAN_AMOUNT']]) 
+            id_tmp_array = np.array([id for id in df['LOAN_ID']]) # id用の配列
             for info in df['filepath']:
                         
                 # 対象の画像ファイルを開く
@@ -95,7 +96,7 @@ class ZipMake:
                     # 格納用のListに追加
                     img_tmp_array.append(img_array)
                         
-            data_tuple = tuple((loan_tmp_array,np.array(img_tmp_array)))
+            data_tuple = tuple((loan_tmp_array,np.array(img_tmp_array),id_tmp_array))
             pickle.dump(data_tuple,f)
 
 
@@ -151,7 +152,8 @@ class ZipMake:
       for path, df in zip(pickle_path2, df_list):
         
         with open(path, 'wb') as f:
-            img_tmp_array = [] 
+            img_tmp_array = []
+            id_tmp_array = np.array([id for id in df['LOAN_ID']]) # id用の配列
             for info in df['filepath']:
                          
                 # 対象の画像ファイルを開く
@@ -164,7 +166,7 @@ class ZipMake:
                     img_array = np.array(img)
                     # 格納用のListに追加
                     img_tmp_array.append(img_array)
-
+            data_tuple = tuple((np.array(img_tmp_array),id_tmp_array))
             pickle.dump(np.array(img_tmp_array),f)
 
     
