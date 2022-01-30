@@ -159,6 +159,7 @@ pickle_file = glob.glob(os.path.join(dir_name[0], '*.pickle'))
 pickle_test_file = glob.glob(os.path.join(dir_name[1],'*.pickle'))
 open = OpenPickle(pickle_file)
 id , image_and_label = open.open_pkl_image()
+image_and_label = image_and_label.shuffle(len(image_and_label)) # 一応shuffle
 df_train = pd.merge(df_train,id,on='LOAN_ID')
 #================================================================
 
