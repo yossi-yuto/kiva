@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings('ignore')
 
-isMakeData =     # データを作成するときはTrue、データ作成後はFalse
+isMakeData = True  # データを作成するときはTrue、データ作成後はFalse
 isLoadModel = False
 isTraining = True
 isVisualize = True
