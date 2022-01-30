@@ -1,3 +1,4 @@
+from cmath import nan
 import numpy as np
 import io
 from PIL import Image
@@ -6,6 +7,8 @@ import os
 import pdb
 import pandas as pd
 import pickle
+import tensorflow as tf
+import random
 
 class ZipMake:
 
@@ -46,21 +49,20 @@ class ZipMake:
 
         # zipファイル内の各ファイルについてループ
         for tmp_url in tmp_lst:
+
               # 「zipファイル名/」については処理をしない
-              if (tmp_url.filename != tmp_lst[0].filename):                             
+              if (tmp_url.filename != tmp_lst[0].filename):         
+                                     
                   basename_without_ext = int(os.path.splitext(os.path.basename(tmp_url.filename))[0])
                   df_tmp = self.df[self.df['IMAGE_ID'] == basename_without_ext]
                   train_X.append([int(df_tmp['LOAN_ID']),tmp_url])
 
         
         df_tmp = pd.DataFrame(train_X,columns=['LOAN_ID','filepath'])
-
-        self.df = pd.merge(self.df, df_tmp)
+        self.df = pd.merge(self.df, df_tmp,on='LOAN_ID',how='outer') #  全データに対してNANを含めたfilepathを指定
         
         with open(self.df_filename, 'wb') as f:
           pickle.dump(self.df,f)
-    
-
 
 
       # データ読み込み
@@ -77,14 +79,13 @@ class ZipMake:
         pickle_path2.append(self.dir_name+ '/' + os.path.split(self.dir_name)[1]+str(i)+'.pickle')
             
       # 書き込みモードでパスを開いて画像データを作成
-      for path, df in zip(pickle_path2, df_list):
-        
-        with open(path, 'wb') as f:
-            img_tmp_array = []        
+      for path, df in zip(pickle_path2, df_list):        
+        with open(path, 'wb') as f:                    
             loan_tmp_array = np.array([loan for loan in df['LOAN_AMOUNT']]) 
-            id_tmp_array = np.array([id for id in df['LOAN_ID']]) # id用の配列
-            for info in df['filepath']:
-                        
+            id_tmp_array = np.array([id for id in df['LOAN_ID']])     
+            img_tmp_array = []  
+            for info in df['filepath']:              
+              try:
                 # 対象の画像ファイルを開く
                 with zip_file.open(info.filename) as img_file:
                     # 画像のバイナリデータを読み込む
@@ -95,7 +96,11 @@ class ZipMake:
                     img_array = np.array(img)
                     # 格納用のListに追加
                     img_tmp_array.append(img_array)
-                        
+
+              except: # 例外処理
+                img_array = np.zeros((224,224,3),'uint8')
+                img_tmp_array.append(img_array)
+                         
             data_tuple = tuple((loan_tmp_array,np.array(img_tmp_array),id_tmp_array))
             pickle.dump(data_tuple,f)
 
@@ -130,7 +135,7 @@ class ZipMake:
 
         
         df_test = pd.DataFrame(train_X,columns=['LOAN_ID','filepath'])
-        self.df_test = pd.merge(self.df_test,df_test)
+        self.df_test = pd.merge(self.df_test,df_test,on='LOAN_ID',how='outer')
 
         with open(self.df_test_filename, 'wb') as f:
           pickle.dump(self.df_test,f)
@@ -152,9 +157,11 @@ class ZipMake:
       for path, df in zip(pickle_path2, df_list):
         
         with open(path, 'wb') as f:
-            img_tmp_array = []
+            
             id_tmp_array = np.array([id for id in df['LOAN_ID']]) # id用の配列
+            img_tmp_array = [] 
             for info in df['filepath']:
+              try:
                          
                 # 対象の画像ファイルを開く
                 with zip_file.open(info.filename) as img_file:
@@ -166,10 +173,67 @@ class ZipMake:
                     img_array = np.array(img)
                     # 格納用のListに追加
                     img_tmp_array.append(img_array)
-            data_tuple = tuple((np.array(img_tmp_array),id_tmp_array))
-            pickle.dump(np.array(img_tmp_array),f)
+              except:
+                img_array = np.zeros((224,224,3),'uint8')
+                img_tmp_array.append(img_array)
 
-    
+            data_tuple = tuple((np.array(img_tmp_array),id_tmp_array))
+
+            pickle.dump(data_tuple,f)
+
+
+
+class OpenPickle:
+  def __init__(self,filepath_list):
+      self.filepath = filepath_list
+
+  # pickleファイルパスから画像データを生成
+  def open_pkl_image(self,rand_num = 50):
+    '''
+    feat：100枚1セットのファイルパスをrand_num*100枚分だけランダムに抽出し、内部でシャッフルしデータを生成
+    引数：ファイルパスのリスト
+    返り値：画像のid,tf.data.Dataset型のデータ
+    defaultでは50なので、5000枚の画像が入ったtf.data.Datasetを返す
+    '''
+    filepath = random.sample(self.filepath,rand_num) # rand_num分だけファイルパスをリストとして保存
+    firstLoop = True  
+    for path in filepath:    
+      with open(path,'rb') as f:
+        if firstLoop:
+          x = pickle.load(f)
+          loan_amount, img_array, loan_id = x
+          loan_amount = tf.data.Dataset.from_tensor_slices(loan_amount)
+          img_array = img_array / 255
+          img_array = tf.data.Dataset.from_tensor_slices(tf.cast(img_array, tf.float64))
+          image_label = tf.data.Dataset.zip((img_array,loan_amount))
+          
+          df_data = pd.DataFrame(loan_id,columns=['LOAN_ID'])       
+          firstLoop = False
+          
+        else:        
+          y = pickle.load(f)
+          loan_amount, img_array, loan_id = y
+          loan_amount = tf.data.Dataset.from_tensor_slices(loan_amount)
+          img_array = img_array / 255
+          img_array = tf.data.Dataset.from_tensor_slices(tf.cast(img_array, tf.float64))
+          image_label_ds = tf.data.Dataset.zip(( img_array,loan_amount))
+          image_label = image_label.concatenate(image_label_ds)
+          df_data_tmp = pd.DataFrame(loan_id,columns=['LOAN_ID'])
+          df_data = pd.concat([df_data,df_data_tmp],axis=0)
+            
+    return df_data, image_label
+  
+  def open_test_pkl_image(self,filepath):
+    with open(filepath,'rb') as f:        
+        x = pickle.load(f)
+        img_array, loan_id = x
+        img_array = img_array / 255
+        img_array = tf.data.Dataset.from_tensor_slices(tf.cast(img_array, tf.float64))
+        
+        df_data = pd.DataFrame(loan_id,columns=['LOAN_ID'])                       
+            
+    return df_data, img_array
+
 
 
 
