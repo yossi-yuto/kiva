@@ -24,9 +24,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 isMakeData = True  # データを作成するときはTrue、データ作成後はFalse
-isLoadModel = False
-isTraining = True
-isVisualize = True
 
 #============================================================
 # tensorflow2.xでのGPUの設定
@@ -42,9 +39,6 @@ else:
     print("Not enough GPU hardware devices available")
 #============================================================
 #=================================================================
-
-
-
 
 #=================================================================
 # パスの設定
@@ -189,7 +183,7 @@ pdb.set_trace()
 
 
 
-# テストデータ--------------------------------------
+# テストデータの作成とモデル予測--------------------------------------
 #================================================================
 for path in pickle_test_file:
   id, image_test = open.open_test_pkl_image(path)
