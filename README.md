@@ -27,7 +27,7 @@ csv形式のデータと画像に対してマルチモーダルなデータセ�
 1. 訓練・テスト用の２つの画像zipファイルと３つのcsvファイル（合計５つ）を同じディレクトリ内に置く
 2. isMakeDataフラグをTrueにするとデータ作成、作成後はFalseのまま
 3. ZipMakeのメソッドのmake_train_data,make_test_dataはTrueに設定
-4. main.pyの171行目のpdb.set_trace()で前処理後の、訓練データimage_and_label（画像モデル用）,df_train（テーブルデータ用モデル）を確認
+4. main.pyの166行目のpdb.set_trace()で前処理後の、訓練データimage_and_label（画像モデル用）,df_train（テーブルデータ用モデル）を確認
 5. len()によりデータ数が5000ならば、データの前処理は無事成功
 
 
