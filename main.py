@@ -88,7 +88,7 @@ dir_name = list([dir_train_name,dir_test_name])
 #==========================================================================
 if isMakeData:
   # zipmakeインスタンスを作成
-  zipmake = ZipMake.ZipMake(current_dir,zip_path,csv_path,df_filename,dir_name)
+  zipmake = ZipMake(current_dir,zip_path,csv_path,df_filename,dir_name)
 
   # 訓練データを作成（mkfrm_flgはdataframe.pikcleを作成するときTrue,default:False)
   zipmake.make_train_data(mkfrm_flag=True)
